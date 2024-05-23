@@ -3,8 +3,7 @@ window.onload = function() {
     const cols = 10; // Number of columns
     const table = document.getElementById('spreadsheet');
     const scoreDisplay = document.getElementById('scoreDisplay'); // Get the score display element
-    const dictionary = ['APPLE', 'ORANGE', 'BANANA', 'GRAPE', 'CHERRY']; // Example dictionary
-    let score = 0;
+    const dictionary = ['APPLE', 'ORANGE', 'BANANA', 'BAN', 'BANA', 'MANGO', 'CHERRY']; // Example dictionary
     let firstInputMade = false;
     createGrid(rows, cols);
 
@@ -36,7 +35,7 @@ window.onload = function() {
                     cell.innerText = event.key.toUpperCase();
                     cell.contentEditable = "false";
                     firstInputMade = true;
-                    updateScoreAndStyles(previousContent === '', row, col);
+                    checkWordsAndUpdateStyles();
                 }
             }
 
@@ -80,24 +79,24 @@ window.onload = function() {
 
         return filledNeighborCount === 1; // Editable only if exactly one filled neighbor
     }
-    
-    function updateScoreAndStyles(wasNewLetter, row, col) {
-        checkWordsAndUpdateStyles();
-        scoreDisplay.innerText = 'Score: ' + score; // Update the score display
-    }
 
     function checkWordsAndUpdateStyles() {
         updateCellStyles();
-        let newScore = 0;
-        for (let i = 0; i < rows; i++) {
+        let usedWords = {};
+        highlightWords(true, usedWords);
+        highlightWords(false, usedWords);
+        scoreDisplay.innerText = 'Score: ' + calculateScore(usedWords); // Update the score 
+    }
+
+    function highlightWords(rowwise, usedWords) {
+      for (let i = 0; i < (rowwise ? rows : cols); i++) {
             let word = '', wordStartIdx = -1;
-            for (let j = 0; j < cols; j++) {
-                const cell = table.rows[i].cells[j];
-                let cellChar = table.rows[i].cells[j].innerText;
+            for (let j = 0; j < (rowwise ? cols : rows); j++) {
+                let cellChar = table.rows[rowwise ? i : j].cells[rowwise ? j : i].innerText;
                 if (cellChar === '' && wordStartIdx >= 0) {
                   if (dictionary.includes(word)) {
-                      newScore += word.length;
-                      highlightRow(i, wordStartIdx, word.length);
+                      usedWords[word] = true;
+                      highlight(rowwise, i, wordStartIdx, word.length);
                   }
                   wordStartIdx = -1;
                   word = '';
@@ -110,40 +109,20 @@ window.onload = function() {
                 
             }
         }
-
-        for (let j = 0; j < cols; j++) {
-            let word = '', wordStartIdx = -1;
-            for (let i = 0; i < rows; i++) {
-                let cellChar = table.rows[i].cells[j].innerText;
-                if (cellChar === '' && wordStartIdx >= 0) {
-                  if (dictionary.includes(word)) {
-                      newScore += word.length;
-                      highlightColumn(j, wordStartIdx, word.length);
-                  }
-                  wordStartIdx = -1;
-                  word = '';
-                } else if (cellChar !== '') {
-                  if (wordStartIdx < 0) {
-	                    wordStartIdx = i;
-                  }
-                  word += cellChar;
-                }
-            }
-        }
-        score = newScore; // Update score based on valid words found
-    }
-
-    function highlightRow(rowIdx, wordStartIdx, length) {
-        let wordEndIdx = wordStartIdx + length;
-        for (let i = wordStartIdx; i < wordEndIdx; i++) {
-            table.rows[rowIdx].cells[i].style.backgroundColor = '#FFFF99'; // Light yellow
-        }
     }
     
-    function highlightColumn(colIdx, wordStartIdx, length) {
+    function calculateScore(usedWords) {
+    	let score = 0;
+      for (let word of Object.keys(usedWords)) {
+      	score += word.length;
+      }
+      return score;
+    }
+    
+    function highlight(isRow, idx, wordStartIdx, length) {
         let wordEndIdx = wordStartIdx + length;
         for (let i = wordStartIdx; i < wordEndIdx; i++) {
-            table.rows[i].cells[colIdx].style.backgroundColor = '#FFFF99'; // Light yellow
+            table.rows[isRow ? idx : i].cells[isRow ? i : idx].style.backgroundColor = '#FFFF99'; // Light yellow
         }
     }
 
@@ -159,6 +138,5 @@ window.onload = function() {
             }
         }
     }
-    
-    updateScoreAndStyles(true, 0, 0); // Initial score update
+    checkWordsAndUpdateStyles(); // Initial score update
 };
