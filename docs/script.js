@@ -119,7 +119,7 @@ window.onload = function() {
       return score;
     }
     
-    function highlight(isRow, idx, wordStartIdx, length) {
+	function highlight(isRow, idx, wordStartIdx, length) {
         let wordEndIdx = wordStartIdx + length;
         for (let i = wordStartIdx; i < wordEndIdx; i++) {
             table.rows[isRow ? idx : i].cells[isRow ? i : idx].style.backgroundColor = '#FFFF99'; // Light yellow
