@@ -2,7 +2,10 @@ window.onload = function() {
     const rows = 10; // Number of rows
     const cols = 10; // Number of columns
     const table = document.getElementById('spreadsheet');
-    let firstInputMade = false; // Flag to track if any input has been made
+    const scoreDisplay = document.getElementById('scoreDisplay'); // Get the score display element
+    const dictionary = ['APPLE', 'ORANGE', 'BANANA', 'GRAPE', 'CHERRY']; // Example dictionary
+    let score = 0;
+    let firstInputMade = false;
     createGrid(rows, cols);
 
     function createGrid(rows, cols) {
@@ -10,8 +13,8 @@ window.onload = function() {
             const row = table.insertRow();
             for (let j = 0; j < cols; j++) {
                 const cell = row.insertCell();
-                cell.contentEditable = "true"; // Initially, all cells are editable
-                cell.tabIndex = 0; // Make cells focusable
+                cell.contentEditable = "true";
+                cell.tabIndex = 0;
                 attachEvents(cell, i, j);
             }
         }
@@ -21,7 +24,7 @@ window.onload = function() {
         cell.addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                navigate(row, col + 1); // Go to the next cell
+                navigate(row, col + 1);
             } else if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
                 if (firstInputMade && !canEditCell(row, col)) {
                     event.preventDefault(); // Prevent typing if the cell cannot be edited
@@ -29,10 +32,11 @@ window.onload = function() {
                 }
                 if (!firstInputMade || cell.innerText.length === 0) {
                     event.preventDefault();
-                    cell.innerText = event.key.toUpperCase(); // Set the content with new key, in uppercase
-                    cell.contentEditable = "false"; // Make cell uneditable after input
-                    firstInputMade = true; // Set the flag since input is made
-                    updateCellStyles();
+                    let previousContent = cell.innerText;
+                    cell.innerText = event.key.toUpperCase();
+                    cell.contentEditable = "false";
+                    firstInputMade = true;
+                    updateScoreAndStyles(previousContent === '', row, col);
                 }
             }
 
@@ -76,6 +80,72 @@ window.onload = function() {
 
         return filledNeighborCount === 1; // Editable only if exactly one filled neighbor
     }
+    
+    function updateScoreAndStyles(wasNewLetter, row, col) {
+        checkWordsAndUpdateStyles();
+        scoreDisplay.innerText = 'Score: ' + score; // Update the score display
+    }
+
+    function checkWordsAndUpdateStyles() {
+        updateCellStyles();
+        let newScore = 0;
+        for (let i = 0; i < rows; i++) {
+            let word = '', wordStartIdx = -1;
+            for (let j = 0; j < cols; j++) {
+                const cell = table.rows[i].cells[j];
+                let cellChar = table.rows[i].cells[j].innerText;
+                if (cellChar === '' && wordStartIdx >= 0) {
+                  if (dictionary.includes(word)) {
+                      newScore += word.length;
+                      highlightRow(i, wordStartIdx, word.length);
+                  }
+                  wordStartIdx = -1;
+                  word = '';
+                } else if (cellChar !== '') {
+                  if (wordStartIdx < 0) {
+	                    wordStartIdx = j;
+                  }
+                  word += cellChar;
+                }
+                
+            }
+        }
+
+        for (let j = 0; j < cols; j++) {
+            let word = '', wordStartIdx = -1;
+            for (let i = 0; i < rows; i++) {
+                let cellChar = table.rows[i].cells[j].innerText;
+                if (cellChar === '' && wordStartIdx >= 0) {
+                  if (dictionary.includes(word)) {
+                      newScore += word.length;
+                      highlightColumn(j, wordStartIdx, word.length);
+                  }
+                  wordStartIdx = -1;
+                  word = '';
+                } else if (cellChar !== '') {
+                  if (wordStartIdx < 0) {
+	                    wordStartIdx = i;
+                  }
+                  word += cellChar;
+                }
+            }
+        }
+        score = newScore; // Update score based on valid words found
+    }
+
+    function highlightRow(rowIdx, wordStartIdx, length) {
+        let wordEndIdx = wordStartIdx + length;
+        for (let i = wordStartIdx; i < wordEndIdx; i++) {
+            table.rows[rowIdx].cells[i].style.backgroundColor = '#FFFF99'; // Light yellow
+        }
+    }
+    
+    function highlightColumn(colIdx, wordStartIdx, length) {
+        let wordEndIdx = wordStartIdx + length;
+        for (let i = wordStartIdx; i < wordEndIdx; i++) {
+            table.rows[i].cells[colIdx].style.backgroundColor = '#FFFF99'; // Light yellow
+        }
+    }
 
     function updateCellStyles() {
         for (let i = 0; i < rows; i++) {
@@ -89,6 +159,6 @@ window.onload = function() {
             }
         }
     }
-
-    updateCellStyles(); // Initial style update
+    
+    updateScoreAndStyles(true, 0, 0); // Initial score update
 };
