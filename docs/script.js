@@ -1,10 +1,9 @@
 window.onload = function() {
-    const rows = 10; // Number of rows
-    const cols = 10; // Number of columns
+    const rows = 6; // Number of rows
+    const cols = 6; // Number of columns
     const table = document.getElementById('spreadsheet');
     const scoreDisplay = document.getElementById('scoreDisplay'); // Get the score display element
     const resetBtn = document.getElementById('resetBtn');
-    const dictionary = ['APPLE', 'ORANGE', 'BANANA', 'BAN', 'BANA', 'MANGO', 'CHERRY']; // Example dictionary
     let firstInputMade = false;
         
     createGrid(rows, cols);
@@ -109,13 +108,16 @@ window.onload = function() {
                 let cellChar = table.rows[rowIdx].cells[colIdx].innerText;
 								let nxtRowIdx = rowIdx + (rowwise ? 0 : 1);
                 let nxtColIdx = colIdx + (rowwise ? 1 : 0);
-                if (cellChar !== '') {
+                if (cellChar === '') {
+                  wordStartIdx = -1;
+                  word = '';
+                } else {
                   if (wordStartIdx < 0) {
 	                    wordStartIdx = j;
                   }
                   word += cellChar;
                 }
-                if ((!table.rows[nxtRowIdx] || !table.rows[nxtRowIdx].cells[nxtColIdx] || table.rows[nxtRowIdx].cells[nxtColIdx].innerText === '') && word.length > 0 && dictionary.includes(word)) {
+                if ((!table.rows[nxtRowIdx] || !table.rows[nxtRowIdx].cells[nxtColIdx] || table.rows[nxtRowIdx].cells[nxtColIdx].innerText === '') && word.length > 0 && dictionary.includes(word.toLowerCase())) {
                     usedWords[word] = true;
                     highlightWord(rowwise, i, wordStartIdx, word.length);
                     wordStartIdx = -1;
@@ -126,6 +128,7 @@ window.onload = function() {
     }
     
     function calculateScore(usedWords) {
+      console.log(usedWords)
     	let score = 0;
       for (let word of Object.keys(usedWords)) {
       	score += word.length;
