@@ -3,10 +3,22 @@ window.onload = function() {
     const cols = 10; // Number of columns
     const table = document.getElementById('spreadsheet');
     const scoreDisplay = document.getElementById('scoreDisplay'); // Get the score display element
+    const resetBtn = document.getElementById('resetBtn');
     const dictionary = ['APPLE', 'ORANGE', 'BANANA', 'BAN', 'BANA', 'MANGO', 'CHERRY']; // Example dictionary
     let firstInputMade = false;
+        
     createGrid(rows, cols);
 
+    resetBtn.addEventListener('click', function(e) {
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          table.rows[i].cells[j].innerText = '';
+        }
+      }
+      firstInputMade = false;
+      checkWordsAndUpdateStyles();
+    });
+    
     function createGrid(rows, cols) {
         for (let i = 0; i < rows; i++) {
             const row = table.insertRow();
@@ -92,21 +104,23 @@ window.onload = function() {
       for (let i = 0; i < (rowwise ? rows : cols); i++) {
             let word = '', wordStartIdx = -1;
             for (let j = 0; j < (rowwise ? cols : rows); j++) {
-                let cellChar = table.rows[rowwise ? i : j].cells[rowwise ? j : i].innerText;
-                if (cellChar === '' && wordStartIdx >= 0) {
-                  if (dictionary.includes(word)) {
-                      usedWords[word] = true;
-                      highlight(rowwise, i, wordStartIdx, word.length);
-                  }
-                  wordStartIdx = -1;
-                  word = '';
-                } else if (cellChar !== '') {
+            		let rowIdx = rowwise ? i : j;
+                let colIdx = rowwise ? j : i;
+                let cellChar = table.rows[rowIdx].cells[colIdx].innerText;
+								let nxtRowIdx = rowIdx + (rowwise ? 0 : 1);
+                let nxtColIdx = colIdx + (rowwise ? 1 : 0);
+                if (cellChar !== '') {
                   if (wordStartIdx < 0) {
 	                    wordStartIdx = j;
                   }
                   word += cellChar;
                 }
-                
+                if ((!table.rows[nxtRowIdx] || !table.rows[nxtRowIdx].cells[nxtColIdx] || table.rows[nxtRowIdx].cells[nxtColIdx].innerText === '') && word.length > 0 && dictionary.includes(word)) {
+                    usedWords[word] = true;
+                    highlightWord(rowwise, i, wordStartIdx, word.length);
+                    wordStartIdx = -1;
+                    word = '';
+                }
             }
         }
     }
@@ -119,7 +133,7 @@ window.onload = function() {
       return score;
     }
     
-	function highlight(isRow, idx, wordStartIdx, length) {
+		function highlightWord(isRow, idx, wordStartIdx, length) {
         let wordEndIdx = wordStartIdx + length;
         for (let i = wordStartIdx; i < wordEndIdx; i++) {
             table.rows[isRow ? idx : i].cells[isRow ? i : idx].style.backgroundColor = '#FFFF99'; // Light yellow
