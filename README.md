@@ -1,5 +1,5 @@
-# wordtree
+# wordgrid
 
-[Try it!](http://ajc5.github.io/wordtree)
+[Try it!](http://ajc5.github.io/wordgrid)
 
-Build your vocabulary in a scrabble-like game with no limitations.
+A freeform crossword puzzle to help build your vocabulary.
